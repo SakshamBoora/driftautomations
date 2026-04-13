@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drift Automations — AI Operations Partner</title>
+  <meta name="description"
+    content="We architect custom AI agents and backend automations for companies that have outgrown manual processes. Precise, fast, and built to last." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    /* ── Base ── */
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0a0a0a;
+      color: rgba(255, 255, 255, 0.82);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Animated background canvas ── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Grain overlay ── */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: .028;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 220px 220px;
+    }
+
+    /* ── Content layer ── */
+    .site {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ── Gradient text (white → light gray, no color) ── */
+    .g-text {
+      background: linear-gradient(115deg, #ffffff 10%, #888888 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ── Primary button ── */
+    .g-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .6rem 1.3rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 1);
+      border: 1px solid rgba(255, 255, 255, .15);
+      color: #0a0a0a;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: .875rem;
+      text-decoration: none;
+      transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+      white-space: nowrap;
+    }
+
+    .g-btn:hover {
+      background: #e8e8e8;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(255, 255, 255, .12);
+    }
+
+    /* ── Ghost button ── */
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .6rem 1.3rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      color: rgba(255, 255, 255, .45);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 500;
+      font-size: .875rem;
+      text-decoration: none;
+      background: transparent;
+      transition: all .22s ease;
+      white-space: nowrap;
+    }
+
+    .ghost-btn:hover {
+      border-color: rgba(255, 255, 255, .2);
+      color: rgba(255, 255, 255, .8);
+      background: rgba(255, 255, 255, .04);
+      transform: translateY(-1px);
+    }
+
+    /* ── Navbar ── */
+    .nav-glass {
+      background: rgba(10, 10, 10, .78);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border-bottom: 1px solid rgba(255, 255, 255, .07);
+    }
+
+    .nav-link {
+      font-size: .875rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, .45);
+      text-decoration: none;
+      transition: color .2s ease;
+    }
+
+    .nav-link:hover {
+      color: rgba(255, 255, 255, .88);
+    }
+
+    /* ── Section separator ── */
+    .sep {
+      border-top: 1px solid rgba(255, 255, 255, .05);
+    }
+
+    /* ── Overline label ── */
+    .overline {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, .42);
+      margin-bottom: 1.2rem;
+    }
+
+    /* ── Bento grid: cells separated by 1px grid lines ── */
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1px;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .05);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .bcell {
+      background: #0e0e0e;
+      padding: 2.4rem;
+      position: relative;
+      overflow: hidden;
+      transition: background .3s ease;
+    }
+
+    .bcell:hover {
+      background: rgba(255, 255, 255, .04);
+    }
+
+    .bc7 {
+      grid-column: span 7;
+    }
+
+    .bc5 {
+      grid-column: span 5;
+    }
+
+    .bc6 {
+      grid-column: span 6;
+    }
+
+    @media (max-width: 860px) {
+
+      .bc7,
+      .bc5,
+      .bc6 {
+        grid-column: span 12;
+      }
+    }
+
+    /* ── Card (standalone) ── */
+    .card {
+      background: rgba(255, 255, 255, .02);
+      border: 1px solid rgba(255, 255, 255, .05);
+      border-radius: 16px;
+      transition: border-color .3s ease, background .3s ease, transform .32s ease, box-shadow .3s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, .09);
+      background: rgba(255, 255, 255, .038);
+      transform: translateY(-3px);
+      box-shadow: 0 32px 80px rgba(0, 0, 0, .48);
+    }
+
+    /* ── Icon pill ── */
+    .icon-pill {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, .07);
+      background: rgba(255, 255, 255, .03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.4rem;
+    }
+
+    /* ── CSS Chat element (Chatbots bento card) ── */
+    .css-chat {
+      position: absolute;
+      bottom: 1.6rem;
+      right: 1.8rem;
+      width: 195px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .cbubble {
+      padding: 6px 10px;
+      font-size: 9px;
+      line-height: 1.55;
+      border-radius: 10px;
+      width: fit-content;
+      max-width: 175px;
+    }
+
+    .cb-u {
+      background: rgba(255, 255, 255, .045);
+      border: 1px solid rgba(255, 255, 255, .06);
+      border-bottom-left-radius: 3px;
+      color: rgba(255, 255, 255, .3);
+      align-self: flex-start;
+    }
+
+    .cb-b {
+      background: rgba(109, 40, 217, .12);
+      border: 1px solid rgba(109, 40, 217, .18);
+      border-bottom-right-radius: 3px;
+      color: rgba(196, 181, 253, .55);
+      align-self: flex-end;
+    }
+
+    /* typing indicator */
+    .cb-typing {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 7px 11px;
+      background: rgba(109, 40, 217, .08);
+      border: 1px solid rgba(109, 40, 217, .12);
+      border-radius: 10px;
+      border-bottom-right-radius: 3px;
+      align-self: flex-end;
+    }
+
+    .cb-typing span {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(196, 181, 253, .4);
+      animation: blink 1.4s infinite;
+    }
+
+    .cb-typing span:nth-child(2) {
+      animation-delay: .2s;
+    }
+
+    .cb-typing span:nth-child(3) {
+      animation-delay: .4s;
+    }
+
+    @keyframes blink {
+
+      0%,
+      80%,
+      100% {
+        opacity: .3;
+      }
+
+      40% {
+        opacity: 1;
+      }
+    }
+
+    /* ── CSS Flow (Workflow card) ── */
+    .css-flow {
+      position: absolute;
+      bottom: 1.8rem;
+      right: 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .fnode {
+      padding: 5px 9px;
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: rgba(255, 255, 255, .28);
+      border: 1px solid rgba(255, 255, 255, .08);
+      background: rgba(255, 255, 255, .025);
+      border-radius: 7px;
+    }
+
+    .fnode.em {
+      border-color: rgba(52, 211, 153, .22);
+      background: rgba(52, 211, 153, .07);
+      color: rgba(52, 211, 153, .6);
+    }
+
+    .fline {
+      width: 30px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, .07), rgba(52, 211, 153, .22));
+      position: relative;
+    }
+
+    .fline::after {
+      content: '';
+      position: absolute;
+      right: -3px;
+      top: -3px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(52, 211, 153, .35);
+    }
+
+    /* ── CSS Table rows (CRM card) ── */
+    .css-table {
+      position: absolute;
+      bottom: 1.6rem;
+      right: 1.8rem;
+      width: 168px;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .trow {
+      display: flex;
+      gap: 5px;
+      padding: 3.5px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, .04);
+    }
+
+    .tbar {
+      height: 6.5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, .07);
+    }
+
+    /* ── Marquee / ticker ── */
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marquee-scroll 32s linear infinite;
+    }
+
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+
+    @keyframes marquee-scroll {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    .marquee-wrap {
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+    }
+
+    .int-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      flex-shrink: 0;
+      padding: 0 2.5rem;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      color: rgba(255, 255, 255, .55);
+      transition: color .2s ease;
+      cursor: default;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .int-item:hover {
+      color: rgba(255, 255, 255, .9);
+    }
+
+    .int-icon {
+      flex-shrink: 0;
+      opacity: .7;
+    }
+
+    .int-sep {
+      flex-shrink: 0;
+      width: 1px;
+      height: 14px;
+      background: rgba(255, 255, 255, .12);
+      align-self: center;
+    }
+
+    /* ── Process step circle ── */
+    .step-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, .09);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, .28);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── FAQ ── */
+    .faq-item {
+      border-bottom: 1px solid rgba(255, 255, 255, .05);
+    }
+
+    .faq-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.35rem 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: .9rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, .68);
+      transition: color .2s ease;
+    }
+
+    .faq-btn:hover {
+      color: rgba(255, 255, 255, .92);
+    }
+
+    .faq-icon {
+      flex-shrink: 0;
+      color: rgba(255, 255, 255, .2);
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1), color .2s ease;
+    }
+
+    .faq-btn[aria-expanded="true"] .faq-icon {
+      transform: rotate(45deg);
+      color: rgba(196, 181, 253, .7);
+    }
+
+    .faq-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .45s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .faq-body.open {
+      max-height: 280px;
+    }
+
+    .faq-body>p {
+      padding-bottom: 1.35rem;
+      color: rgba(255, 255, 255, .3);
+      font-size: .875rem;
+      line-height: 1.82;
+    }
+
+    /* ── Modal overlay ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0, 0, 0, .72);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .28s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-box {
+      background: #111111;
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 640px;
+      max-height: 82vh;
+      overflow-y: auto;
+      padding: 2.5rem;
+      position: relative;
+      transform: translateY(18px);
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, .12) transparent;
+    }
+
+    .modal-overlay.open .modal-box {
+      transform: translateY(0);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      background: rgba(255, 255, 255, .05);
+      color: rgba(255, 255, 255, .55);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      line-height: 1;
+      transition: all .2s ease;
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, .1);
+      color: #fff;
+    }
+
+    .modal-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #f5f5f5;
+      letter-spacing: -.022em;
+      margin-bottom: 1.4rem;
+      padding-right: 2rem;
+    }
+
+    .modal-body p {
+      font-size: .88rem;
+      color: rgba(255, 255, 255, .68);
+      line-height: 1.88;
+      margin-bottom: 1rem;
+    }
+
+    .modal-body h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, .88);
+      margin: 1.4rem 0 .6rem;
+    }
+
+    .modal-body strong {
+      color: rgba(255, 255, 255, .82);
+      font-weight: 600;
+    }
+
+    /* ── Reveal animation ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity .68s cubic-bezier(.4, 0, .2, 1), transform .68s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .reveal.in {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ── Responsive nav helpers ── */
+    @media (min-width: 768px) {
+      .nav-desktop {
+        display: flex !important;
+      }
+
+      .mob-trigger {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .nav-desktop {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── Background system ── -->
+  <canvas id="bg-canvas"></canvas>
+  <div class="grain"></div>
+  <script>
+      (function () {
+        var c = document.getElementById('bg-canvas');
+        var ctx = c.getContext('2d');
+        var W, H, pts, mouse = { x: -999, y: -999 };
+
+        function resize() {
+          W = c.width = window.innerWidth;
+          H = c.height = window.innerHeight;
+        }
+
+        function mkPts(n) {
+          return Array.from({ length: n }, function () {
+            return {
+              x: Math.random() * W,
+              y: Math.random() * H,
+              vx: (Math.random() - .5) * .32,
+              vy: (Math.random() - .5) * .32,
+              r: 1.2 + Math.random() * 2,
+              a: .28 + Math.random() * .38
+            };
+          });
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, W, H);
+
+          /* dot grid — more visible */
+          var gs = 48;
+          for (var gx = 0; gx < W; gx += gs) {
+            for (var gy = 0; gy < H; gy += gs) {
+              ctx.beginPath();
+              ctx.arc(gx, gy, 1.05, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(255,255,255,0.12)';
+              ctx.fill();
+            }
+          }
+
+          /* particles + connections */
+          for (var i = 0; i < pts.length; i++) {
+            var p = pts[i];
+            for (var j = i + 1; j < pts.length; j++) {
+              var q = pts[j];
+              var dx = p.x - q.x, dy = p.y - q.y;
+              var d = Math.sqrt(dx * dx + dy * dy);
+              if (d < 150) {
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(q.x, q.y);
+                ctx.strokeStyle = 'rgba(255,255,255,' + (0.10 * (1 - d / 150)) + ')';
+                ctx.lineWidth = .7;
+                ctx.stroke();
+              }
+            }
+            /* mouse repulsion + glow */
+            var mdx = mouse.x - p.x, mdy = mouse.y - p.y;
+            var md = Math.sqrt(mdx * mdx + mdy * mdy);
+            if (md < 200) {
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(mouse.x, mouse.y);
+              ctx.strokeStyle = 'rgba(255,255,255,' + (0.13 * (1 - md / 200)) + ')';
+              ctx.lineWidth = .7;
+              ctx.stroke();
+              /* gentle repulsion */
+              p.vx -= mdx / md * 0.012;
+              p.vy -= mdy / md * 0.012;
+            }
+            /* draw particle with glow */
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r * 2.8, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,' + (p.a * 0.08) + ')';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,' + p.a + ')';
+            ctx.fill();
+            /* move + dampen */
+            p.vx *= 0.995; p.vy *= 0.995;
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+            if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+          }
+          requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', function () { resize(); pts = mkPts(130); });
+        window.addEventListener('mousemove', function (e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+        resize();
+        pts = mkPts(130);
+        draw();
+      })();
+  </script>
+
+  <div class="site">
+
+    <!-- ══════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════ -->
+    <header class="nav-glass fixed top-0 left-0 right-0" style="z-index:50;">
+      <div
+        style="width:100%;padding:0 2rem;height:80px;display:flex;align-items:center;justify-content:space-between;gap:2rem;">
+
+        <!-- Logo -->
+        <a href="#" id="logo" style="display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;">
+          <img src="logo.png" alt="Drift Automations logo" style="height:52px;width:auto;object-fit:contain;" />
+        </a>
+
+        <!-- Desktop nav -->
+        <nav class="nav-desktop" style="display:none;align-items:center;gap:2rem;" aria-label="Primary navigation">
+          <a href="#services" class="nav-link" id="nav-services">Services</a>
+          <a href="#process" class="nav-link" id="nav-process">Process</a>
+          <a href="#faq" class="nav-link" id="nav-faq">FAQ</a>
+        </nav>
+
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <a href="https://calendly.com/saksham-driftautomations/30min" target="_blank" rel="noopener" id="nav-cta"
+            class="g-btn nav-desktop" style="display:none;">
+            <i data-lucide="calendar" style="width:13px;height:13px;stroke-width:2;"></i>
+            Book a call
+          </a>
+          <button id="mob-toggle" class="mob-trigger"
+            style="background:none;border:none;cursor:pointer;padding:.35rem;display:block;"
+            aria-label="Open navigation">
+            <i data-lucide="menu" style="width:20px;height:20px;color:rgba(255,255,255,.45);stroke-width:1.5;"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile drawer -->
+      <div id="mob-menu" style="display:none;padding:1.1rem 2rem 1.75rem;border-top:1px solid rgba(255,255,255,.05);">
+        <div style="display:flex;flex-direction:column;gap:1.1rem;">
+          <a href="#services" class="nav-link" style="color:rgba(255,255,255,.45);">Services</a>
+          <a href="#process" class="nav-link" style="color:rgba(255,255,255,.45);">Process</a>
+          <a href="#faq" class="nav-link" style="color:rgba(255,255,255,.45);">FAQ</a>
+          <a href="https://calendly.com/saksham-driftautomations/30min" target="_blank" rel="noopener" class="g-btn"
+            style="justify-content:center;margin-top:.2rem;">Book a call</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ══════════════════════════════════════
+     HERO
+══════════════════════════════════════ -->
+    <section id="hero"
+      style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:9rem 2rem 6rem;">
+      <div style="max-width:820px;margin:0 auto;text-align:center;">
+
+        <h1
+          style="font-size:clamp(2.8rem,6.8vw,5rem);font-weight:800;line-height:1.05;letter-spacing:-.032em;color:#ede9ff;margin-bottom:1.3rem;">
+          Grow your business.<br /><span class="g-text">Not your headcount.</span>
+        </h1>
+
+        <p
+          style="color:rgba(255,255,255,.55);font-size:1.08rem;line-height:1.82;max-width:520px;margin:0 auto 2.75rem;font-weight:400;">
+          We build custom AI agents and backend automations that handle your most repetitive tasks. Save hundreds of
+          hours a month and let your team focus on real work.
+        </p>
+
+        <div style="display:flex;align-items:center;justify-content:center;gap:.85rem;flex-wrap:wrap;">
+          <a href="https://calendly.com/saksham-driftautomations/30min" target="_blank" rel="noopener" id="hero-cta"
+            class="g-btn" style="padding:.75rem 1.75rem;font-size:.92rem;">
+            <i data-lucide="calendar" style="width:14px;height:14px;stroke-width:2;"></i>
+            Let's talk
+          </a>
+          <a href="#services" id="hero-secondary" class="ghost-btn" style="padding:.75rem 1.75rem;font-size:.92rem;">
+            See what we do
+            <i data-lucide="arrow-down" style="width:13px;height:13px;stroke-width:2;"></i>
+          </a>
+        </div>
+
+        <!-- Animated stat cards -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:4rem;">
+          <div class="hero-stat-card" id="hsc1">
+            <span class="hsc-num" id="hsc-num-1">0</span><span class="hsc-unit">hrs</span>
+            <span class="hsc-label">saved monthly</span>
+          </div>
+          <div class="hero-stat-card" id="hsc2">
+            <span class="hsc-num" id="hsc-num-2">0</span><span class="hsc-unit">%</span>
+            <span class="hsc-label">tasks automated</span>
+          </div>
+          <div class="hero-stat-card" id="hsc3">
+            <span class="hsc-num" id="hsc-num-3">0</span><span class="hsc-unit">h</span>
+            <span class="hsc-label">avg. delivery time</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <style>
+      .hero-stat-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.35rem 2rem;
+        border: 1px solid rgba(255, 255, 255, .08);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, .03);
+        backdrop-filter: blur(12px);
+        min-width: 130px;
+        position: relative;
+        overflow: hidden;
+        animation: float-card 6s ease-in-out infinite;
+        transition: border-color .3s ease, background .3s ease;
+      }
+
+      .hero-stat-card:nth-child(2) {
+        animation-delay: -2s;
+      }
+
+      .hero-stat-card:nth-child(3) {
+        animation-delay: -4s;
+      }
+
+      .hero-stat-card:hover {
+        border-color: rgba(255, 255, 255, .18);
+        background: rgba(255, 255, 255, .06);
+      }
+
+      @keyframes float-card {
+
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+
+        50% {
+          transform: translateY(-6px);
+        }
+      }
+
+      .hsc-num {
+        font-size: 2.1rem;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -.04em;
+        line-height: 1;
+      }
+
+      .hsc-unit {
+        font-size: .85rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, .45);
+        margin-left: 2px;
+        align-self: flex-end;
+        margin-bottom: 2px;
+      }
+
+      .hsc-label {
+        font-size: .73rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, .32);
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        margin-top: .35rem;
+      }
+    </style>
+    <script>
+      (function () {
+        function animCount(el, target, dur, suffix) {
+          var start = null;
+          function step(ts) {
+            if (!start) start = ts;
+            var prog = Math.min((ts - start) / dur, 1);
+            var eased = 1 - Math.pow(1 - prog, 3);
+            el.textContent = Math.round(eased * target);
+            if (prog < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+        }
+        window.addEventListener('load', function () {
+          setTimeout(function () {
+            animCount(document.getElementById('hsc-num-1'), 200, 1800);
+            animCount(document.getElementById('hsc-num-2'), 80, 1600);
+            animCount(document.getElementById('hsc-num-3'), 48, 1400);
+          }, 400);
+        });
+      })();
+    </script>
+
+    <!-- ══════════════════════════════════════
+     INTEGRATIONS MARQUEE
+══════════════════════════════════════ -->
+    <section id="integrations" style="padding:0 0 5.5rem;">
+      <div
+        style="border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);padding:1.6rem 0;">
+
+        <p
+          style="font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.45);text-align:center;margin-bottom:1.6rem;">
+          We seamlessly connect the tools you already use.
+        </p>
+
+        <div class="marquee-wrap">
+          <div class="marquee-track" id="marquee-track">
+
+            <!-- First set — accurate brand SVGs -->
+            <!-- OpenAI logo (spark/star shape) -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M22.28 9.81a5.87 5.87 0 0 0-.51-4.82 6.05 6.05 0 0 0-6.51-2.9A5.97 5.97 0 0 0 10.77 0 6.06 6.06 0 0 0 4.99 4.1a5.87 5.87 0 0 0-3.93 2.83 6.06 6.06 0 0 0 .74 7.1 5.87 5.87 0 0 0 .51 4.82 6.05 6.05 0 0 0 6.51 2.9A5.97 5.97 0 0 0 13.27 24a6.06 6.06 0 0 0 5.77-4.1 5.87 5.87 0 0 0 3.93-2.83 6.06 6.06 0 0 0-.69-7.26zM13.27 22.5a4.5 4.5 0 0 1-2.89-1.05l.14-.08 4.8-2.77a.77.77 0 0 0 .39-.68v-6.77l2.03 1.17a.07.07 0 0 1 .04.06v5.6a4.52 4.52 0 0 1-4.51 4.52zm-9.72-4.14a4.5 4.5 0 0 1-.54-3.03l.14.08 4.8 2.77a.78.78 0 0 0 .78 0l5.86-3.38v2.34a.07.07 0 0 1-.03.06L9.6 19.99a4.52 4.52 0 0 1-6.05-1.63zM2.3 8.09a4.5 4.5 0 0 1 2.35-1.98V11.8a.77.77 0 0 0 .39.67l5.84 3.37-2.03 1.17a.07.07 0 0 1-.07 0L4.03 14.3a4.52 4.52 0 0 1-1.73-6.21zm16.66 3.88-5.86-3.39 2.03-1.17a.07.07 0 0 1 .07 0l4.75 2.74a4.52 4.52 0 0 1-.7 8.15V12.65a.77.77 0 0 0-.29-.68zm2.02-3.04-.14-.08-4.8-2.77a.78.78 0 0 0-.78 0L9.4 9.46V7.12a.07.07 0 0 1 .03-.06l4.75-2.74a4.52 4.52 0 0 1 6.8 4.65zm-12.69 4.17-2.03-1.17a.07.07 0 0 1-.04-.06V7.27a4.52 4.52 0 0 1 7.41-3.47l-.14.08-4.8 2.77a.77.77 0 0 0-.39.68v6.77zm1.1-2.37 2.61-1.5 2.61 1.5v3l-2.61 1.5-2.61-1.5V10.73z" />
+              </svg>
+              OpenAI
+            </div>
+            <div class="int-sep"></div>
+            <!-- Zapier Z bolt -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M11.7 11.3 5 11.3 5 8.7 16.3 8.7 16.3 11.3 10.6 11.3 10.6 11.3zm0 1.4L5 12.7 5 15.3 16.3 15.3 16.3 12.7 10.6 12.7zm.3 2.7H5.8L2 18.7h6.5zM12.3 8.7H18.2L22 5.3h-6.5z" />
+                <path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0zM12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" />
+              </svg>
+              Zapier
+            </div>
+            <div class="int-sep"></div>
+            <!-- Make (formerly Integromat) — two circles chain -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M7 4a8 8 0 0 0 0 16h10a8 8 0 0 0 0-16H7zm0 2h10a6 6 0 0 1 0 12H7A6 6 0 0 1 7 6z" />
+                <circle cx="7" cy="12" r="3" />
+                <circle cx="17" cy="12" r="3" />
+              </svg>
+              Make
+            </div>
+            <div class="int-sep"></div>
+            <!-- HubSpot sprocket + orbit -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M16 8.5V6.25A2.25 2.25 0 0 0 13.75 4h-.5A2.25 2.25 0 0 0 11 6.25V8.5a.75.75 0 0 0-.75.75v1a.75.75 0 0 0 .75.75h.25v4.5A4 4 0 1 0 16.75 16V11h.25a.75.75 0 0 0 .75-.75v-1A.75.75 0 0 0 16 8.5zm-2.75-3a.75.75 0 0 1 .75.75v2.5h-1.5v-2.5a.75.75 0 0 1 .75-.75zM13 20a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
+              </svg>
+              HubSpot
+            </div>
+            <div class="int-sep"></div>
+            <!-- Notion N mark -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M4.5 3h15A1.5 1.5 0 0 1 21 4.5v15a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-15A1.5 1.5 0 0 1 4.5 3zm1.5 3v12l2-1.5V9.5L15 18V6h-2v8.5L7.5 6H6z" />
+              </svg>
+              Notion
+            </div>
+            <div class="int-sep"></div>
+            <!-- Stripe S -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M13.479 9.883c-2.12-.509-2.801-.9-2.801-1.647 0-.848.659-1.341 1.845-1.341 1.538 0 3.046.6 4.356 1.476l1.615-3.12C17.11 4.166 15.231 3.5 13 3.5c-3.316 0-5.518 1.793-5.518 4.622 0 3.214 2.444 4.016 5.028 4.667 1.846.474 2.527.9 2.527 1.742 0 .9-.748 1.422-2.06 1.422-1.768 0-3.586-.72-5.028-1.97L6.5 17.1c1.615 1.423 3.82 2.4 6.509 2.4 3.48 0 5.726-1.763 5.726-4.652 0-3.153-2.208-4.208-5.256-4.965z" />
+              </svg>
+              Stripe
+            </div>
+            <div class="int-sep"></div>
+            <!-- Slack hash -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M6.527 14.514a1.527 1.527 0 1 1 0 3.054H4.527a1.527 1.527 0 0 1 0-3.054h2zm6.527 0a1.527 1.527 0 1 1 0 3.054 1.527 1.527 0 0 1 0-3.054zm-6.527-6c.843 0 1.527.684 1.527 1.527v4.973a1.527 1.527 0 1 1-3.054 0V10.04c0-.843.684-1.527 1.527-1.527zm6.527 0c.843 0 1.527.684 1.527 1.527v4.973a1.527 1.527 0 1 1-3.054 0V10.04c0-.843.684-1.527 1.527-1.527zm-1.528-6.027a1.527 1.527 0 0 1 0 3.054H9.514V4.514a1.527 1.527 0 0 1 1.527-1.527zm0 6.527a1.527 1.527 0 0 1 0 3.054 1.527 1.527 0 0 1 0-3.054zm6.527-6.527a1.527 1.527 0 0 1 0 3.054h-2V4.514a1.527 1.527 0 0 1 1.527-1.527zm0 6.527a1.527 1.527 0 0 1 0 3.054H16.5V10.04a1.527 1.527 0 0 1 1.527-1.527z" />
+              </svg>
+              Slack
+            </div>
+            <div class="int-sep"></div>
+            <!-- Airtable grid icon -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M12 2 2 6.5v1L12 12l10-4.5v-1L12 2zM2 9.5v7l10 4.5 10-4.5v-7l-10 4.5L2 9.5z" />
+              </svg>
+              Airtable
+            </div>
+            <div class="int-sep"></div>
+            <!-- Google Sheets green grid -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 8H13V3.5zM6 4h5v6h8v10H6V4zm2 8v2h3v-2H8zm5 0v2h3v-2h-3zM8 14v2h3v-2H8zm5 0v2h3v-2h-3z" />
+              </svg>
+              Google Sheets
+            </div>
+            <div class="int-sep"></div>
+            <!-- Gmail M shape -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M20 4H4C2.9 4 2 4.9 2 6v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 2-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z" />
+              </svg>
+              Gmail
+            </div>
+            <div class="int-sep"></div>
+            <!-- WhatsApp bubble check -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm4.95 14.064c-.21.588-1.055 1.078-1.72 1.218-.457.097-1.053.175-3.06-.657-2.567-1.045-4.222-3.656-4.35-3.824-.123-.168-1.033-1.376-1.033-2.624 0-1.248.653-1.86.884-2.116.21-.235.46-.293.614-.293.15 0 .3.001.43.007.138.006.323-.052.505.385.187.448.636 1.55.692 1.663.055.114.09.248.017.398-.073.15-.11.243-.218.374-.11.131-.232.293-.33.394-.11.11-.225.23-.097.45.127.222.566.933 1.215 1.51.835.745 1.54.975 1.76 1.085.22.11.35.092.48-.055.13-.147.554-.645.702-.866.149-.22.297-.183.5-.11.202.073 1.282.605 1.502.716.22.11.366.165.42.257.053.09.053.525-.157 1.083z" />
+              </svg>
+              WhatsApp
+            </div>
+            <div class="int-sep"></div>
+            <!-- Salesforce cloud -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M10.23 5.5C11.16 4.57 12.43 4 13.83 4a5.17 5.17 0 0 1 4.92 3.55A4.5 4.5 0 0 1 22 12a4.5 4.5 0 0 1-4.5 4.5H6.5A3.5 3.5 0 0 1 3 13a3.5 3.5 0 0 1 2.91-3.45A4.23 4.23 0 0 1 5.75 8c0-1.38.67-2.6 1.7-3.37A4.23 4.23 0 0 1 10.23 5.5z" />
+              </svg>
+              Salesforce
+            </div>
+            <div class="int-sep"></div>
+            <!-- Webflow W -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M17.7 7 14.3 17l-2.8-7-2.8 7L5.3 7H3l4.2 10h2.6l2.2-5.6 2.2 5.6h2.6L21 7h-3.3z" />
+              </svg>
+              Webflow
+            </div>
+            <div class="int-sep"></div>
+            <!-- Shopify bag-S -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M15.5 4a3.5 3.5 0 0 0-7 0H5L3 20h18L19 4h-3.5zm-3.5-.5a2 2 0 0 1 2 2H10a2 2 0 0 1 2-2zM9 11a1 1 0 0 1 1-1h.5V8.5h1V10H13a1 1 0 0 1 0 2h-.5v2h-1v-2H10a1 1 0 0 1-1-1z" />
+              </svg>
+              Shopify
+            </div>
+            <div class="int-sep"></div>
+            <!-- YouTube play button -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M21.8 7.2s-.2-1.4-.8-2C20.2 4.3 19.3 4.3 18.9 4.2 16.3 4 12 4 12 4s-4.3 0-6.9.2C4.7 4.3 3.8 4.3 3 5.2c-.6.6-.8 2-.8 2S2 8.8 2 10.4v1.5c0 1.6.2 3.2.2 3.2s.2 1.4.8 2c.8.9 1.8.8 2.3.9C6.8 18.1 12 18.1 12 18.1s4.3 0 6.9-.2c.4 0 1.3-.1 2.1-1 .6-.6.8-2 .8-2s.2-1.6.2-3.2v-1.5C22 8.8 21.8 7.2 21.8 7.2zM9.7 14.5V9.2l5.6 2.7-5.6 2.6z" />
+              </svg>
+              YouTube
+            </div>
+            <div class="int-sep"></div>
+            <!-- LinkedIn in box -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path
+                  d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              </svg>
+              LinkedIn
+            </div>
+            <div class="int-sep"></div>
+            <!-- Typeform T -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M3 5h18v2H3V5zm4 4h10v2H7V9zm-4 4h18v2H3v-2zm4 4h10v2H7v-2z" />
+              </svg>
+              Typeform
+            </div>
+            <div class="int-sep"></div>
+            <!-- n8n node chain -->
+            <div class="int-item">
+              <svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <circle cx="5" cy="12" r="3" />
+                <circle cx="19" cy="5" r="3" />
+                <circle cx="19" cy="19" r="3" />
+                <path d="M8 12h5.5M16 7.5l-3 3M16 16.5l-3-3" stroke="currentColor" stroke-width="1.6" fill="none"
+                  stroke-linecap="round" />
+              </svg>
+              n8n
+            </div>
+
+            <!-- Duplicate set for seamless loop -->
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M22.28 9.81a5.87 5.87 0 0 0-.51-4.82 6.05 6.05 0 0 0-6.51-2.9A5.97 5.97 0 0 0 10.77 0 6.06 6.06 0 0 0 4.99 4.1a5.87 5.87 0 0 0-3.93 2.83 6.06 6.06 0 0 0 .74 7.1 5.87 5.87 0 0 0 .51 4.82 6.05 6.05 0 0 0 6.51 2.9A5.97 5.97 0 0 0 13.27 24a6.06 6.06 0 0 0 5.77-4.1 5.87 5.87 0 0 0 3.93-2.83 6.06 6.06 0 0 0-.69-7.26zM13.27 22.5a4.5 4.5 0 0 1-2.89-1.05l.14-.08 4.8-2.77a.77.77 0 0 0 .39-.68v-6.77l2.03 1.17a.07.07 0 0 1 .04.06v5.6a4.52 4.52 0 0 1-4.51 4.52zm-9.72-4.14a4.5 4.5 0 0 1-.54-3.03l.14.08 4.8 2.77a.78.78 0 0 0 .78 0l5.86-3.38v2.34a.07.07 0 0 1-.03.06L9.6 19.99a4.52 4.52 0 0 1-6.05-1.63zM2.3 8.09a4.5 4.5 0 0 1 2.35-1.98V11.8a.77.77 0 0 0 .39.67l5.84 3.37-2.03 1.17a.07.07 0 0 1-.07 0L4.03 14.3a4.52 4.52 0 0 1-1.73-6.21zm16.66 3.88-5.86-3.39 2.03-1.17a.07.07 0 0 1 .07 0l4.75 2.74a4.52 4.52 0 0 1-.7 8.15V12.65a.77.77 0 0 0-.29-.68zm2.02-3.04-.14-.08-4.8-2.77a.78.78 0 0 0-.78 0L9.4 9.46V7.12a.07.07 0 0 1 .03-.06l4.75-2.74a4.52 4.52 0 0 1 6.8 4.65zm-12.69 4.17-2.03-1.17a.07.07 0 0 1-.04-.06V7.27a4.52 4.52 0 0 1 7.41-3.47l-.14.08-4.8 2.77a.77.77 0 0 0-.39.68v6.77zm1.1-2.37 2.61-1.5 2.61 1.5v3l-2.61 1.5-2.61-1.5V10.73z" />
+              </svg>OpenAI</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M11.7 11.3 5 11.3 5 8.7 16.3 8.7 16.3 11.3 10.6 11.3 10.6 11.3zm0 1.4L5 12.7 5 15.3 16.3 15.3 16.3 12.7 10.6 12.7zm.3 2.7H5.8L2 18.7h6.5zM12.3 8.7H18.2L22 5.3h-6.5z" />
+                <path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0zM12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" />
+              </svg>Zapier</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path d="M7 4a8 8 0 0 0 0 16h10a8 8 0 0 0 0-16H7zm0 2h10a6 6 0 0 1 0 12H7A6 6 0 0 1 7 6z" />
+                <circle cx="7" cy="12" r="3" />
+                <circle cx="17" cy="12" r="3" />
+              </svg>Make</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M16 8.5V6.25A2.25 2.25 0 0 0 13.75 4h-.5A2.25 2.25 0 0 0 11 6.25V8.5a.75.75 0 0 0-.75.75v1a.75.75 0 0 0 .75.75h.25v4.5A4 4 0 1 0 16.75 16V11h.25a.75.75 0 0 0 .75-.75v-1A.75.75 0 0 0 16 8.5zm-2.75-3a.75.75 0 0 1 .75.75v2.5h-1.5v-2.5a.75.75 0 0 1 .75-.75zM13 20a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
+              </svg>HubSpot</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M4.5 3h15A1.5 1.5 0 0 1 21 4.5v15a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-15A1.5 1.5 0 0 1 4.5 3zm1.5 3v12l2-1.5V9.5L15 18V6h-2v8.5L7.5 6H6z" />
+              </svg>Notion</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M13.479 9.883c-2.12-.509-2.801-.9-2.801-1.647 0-.848.659-1.341 1.845-1.341 1.538 0 3.046.6 4.356 1.476l1.615-3.12C17.11 4.166 15.231 3.5 13 3.5c-3.316 0-5.518 1.793-5.518 4.622 0 3.214 2.444 4.016 5.028 4.667 1.846.474 2.527.9 2.527 1.742 0 .9-.748 1.422-2.06 1.422-1.768 0-3.586-.72-5.028-1.97L6.5 17.1c1.615 1.423 3.82 2.4 6.509 2.4 3.48 0 5.726-1.763 5.726-4.652 0-3.153-2.208-4.208-5.256-4.965z" />
+              </svg>Stripe</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M6.527 14.514a1.527 1.527 0 1 1 0 3.054H4.527a1.527 1.527 0 0 1 0-3.054h2zm6.527 0a1.527 1.527 0 1 1 0 3.054 1.527 1.527 0 0 1 0-3.054zm-6.527-6c.843 0 1.527.684 1.527 1.527v4.973a1.527 1.527 0 1 1-3.054 0V10.04c0-.843.684-1.527 1.527-1.527zm6.527 0c.843 0 1.527.684 1.527 1.527v4.973a1.527 1.527 0 1 1-3.054 0V10.04c0-.843.684-1.527 1.527-1.527zm-1.528-6.027a1.527 1.527 0 0 1 0 3.054H9.514V4.514a1.527 1.527 0 0 1 1.527-1.527zm0 6.527a1.527 1.527 0 0 1 0 3.054 1.527 1.527 0 0 1 0-3.054zm6.527-6.527a1.527 1.527 0 0 1 0 3.054h-2V4.514a1.527 1.527 0 0 1 1.527-1.527zm0 6.527a1.527 1.527 0 0 1 0 3.054H16.5V10.04a1.527 1.527 0 0 1 1.527-1.527z" />
+              </svg>Slack</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path d="M12 2 2 6.5v1L12 12l10-4.5v-1L12 2zM2 9.5v7l10 4.5 10-4.5v-7l-10 4.5L2 9.5z" />
+              </svg>Airtable</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 8H13V3.5zM6 4h5v6h8v10H6V4zm2 8v2h3v-2H8zm5 0v2h3v-2h-3zM8 14v2h3v-2H8zm5 0v2h3v-2h-3z" />
+              </svg>Google Sheets</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M20 4H4C2.9 4 2 4.9 2 6v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 2-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z" />
+              </svg>Gmail</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm4.95 14.064c-.21.588-1.055 1.078-1.72 1.218-.457.097-1.053.175-3.06-.657-2.567-1.045-4.222-3.656-4.35-3.824-.123-.168-1.033-1.376-1.033-2.624 0-1.248.653-1.86.884-2.116.21-.235.46-.293.614-.293.15 0 .3.001.43.007.138.006.323-.052.505.385.187.448.636 1.55.692 1.663.055.114.09.248.017.398-.073.15-.11.243-.218.374-.11.131-.232.293-.33.394-.11.11-.225.23-.097.45.127.222.566.933 1.215 1.51.835.745 1.54.975 1.76 1.085.22.11.35.092.48-.055.13-.147.554-.645.702-.866.149-.22.297-.183.5-.11.202.073 1.282.605 1.502.716.22.11.366.165.42.257.053.09.053.525-.157 1.083z" />
+              </svg>WhatsApp</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M10.23 5.5C11.16 4.57 12.43 4 13.83 4a5.17 5.17 0 0 1 4.92 3.55A4.5 4.5 0 0 1 22 12a4.5 4.5 0 0 1-4.5 4.5H6.5A3.5 3.5 0 0 1 3 13a3.5 3.5 0 0 1 2.91-3.45A4.23 4.23 0 0 1 5.75 8c0-1.38.67-2.6 1.7-3.37A4.23 4.23 0 0 1 10.23 5.5z" />
+              </svg>Salesforce</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path d="M17.7 7 14.3 17l-2.8-7-2.8 7L5.3 7H3l4.2 10h2.6l2.2-5.6 2.2 5.6h2.6L21 7h-3.3z" />
+              </svg>Webflow</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M15.5 4a3.5 3.5 0 0 0-7 0H5L3 20h18L19 4h-3.5zm-3.5-.5a2 2 0 0 1 2 2H10a2 2 0 0 1 2-2zM9 11a1 1 0 0 1 1-1h.5V8.5h1V10H13a1 1 0 0 1 0 2h-.5v2h-1v-2H10a1 1 0 0 1-1-1z" />
+              </svg>Shopify</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M21.8 7.2s-.2-1.4-.8-2C20.2 4.3 19.3 4.3 18.9 4.2 16.3 4 12 4 12 4s-4.3 0-6.9.2C4.7 4.3 3.8 4.3 3 5.2c-.6.6-.8 2-.8 2S2 8.8 2 10.4v1.5c0 1.6.2 3.2.2 3.2s.2 1.4.8 2c.8.9 1.8.8 2.3.9C6.8 18.1 12 18.1 12 18.1s4.3 0 6.9-.2c.4 0 1.3-.1 2.1-1 .6-.6.8-2 .8-2s.2-1.6.2-3.2v-1.5C22 8.8 21.8 7.2 21.8 7.2zM9.7 14.5V9.2l5.6 2.7-5.6 2.6z" />
+              </svg>YouTube</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path
+                  d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              </svg>LinkedIn</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <path d="M3 5h18v2H3V5zm4 4h10v2H7V9zm-4 4h18v2H3v-2zm4 4h10v2H7v-2z" />
+              </svg>Typeform</div>
+            <div class="int-sep"></div>
+            <div class="int-item"><svg class="int-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                stroke="none">
+                <circle cx="5" cy="12" r="3" />
+                <circle cx="19" cy="5" r="3" />
+                <circle cx="19" cy="19" r="3" />
+                <path d="M8 12h5.5M16 7.5l-3 3M16 16.5l-3-3" stroke="currentColor" stroke-width="1.6" fill="none"
+                  stroke-linecap="round" />
+              </svg>n8n</div>
+
+          </div><!-- /marquee-track -->
+        </div><!-- /marquee-wrap -->
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+     SERVICES — BENTO
+══════════════════════════════════════ -->
+    <section id="services" style="padding:4rem 2rem 8rem;">
+      <div style="max-width:1120px;margin:0 auto;">
+
+        <div class="reveal" style="margin-bottom:3.75rem;">
+          <span class="overline">What we build</span>
+          <h2
+            style="font-size:clamp(2rem,4.2vw,2.9rem);font-weight:800;letter-spacing:-.028em;color:#f5f5f5;line-height:1.09;">
+            Workflows that run <br /><span class="g-text">on autopilot.</span>
+          </h2>
+          <p style="color:rgba(255,255,255,.52);font-size:.9rem;line-height:1.78;max-width:440px;margin-top:.85rem;">
+            No-code and custom-code. From basic setups to custom API integrations. If a piece of software has an API, we
+            can make it work for you.
+          </p>
+        </div>
+
+        <!-- Bento -->
+        <div class="bento reveal" id="bento-grid">
+
+          <!-- Card 1: Chatbots — col 7 -->
+          <div class="bcell bc7" id="svc-chatbots">
+            <div class="icon-pill">
+              <i data-lucide="bot" style="width:16px;height:16px;color:rgba(196,181,253,.72);stroke-width:1.5;"></i>
+            </div>
+            <div style="max-width:290px;">
+              <h3
+                style="font-size:.975rem;font-weight:700;color:rgba(255,255,255,.88);letter-spacing:-.012em;margin-bottom:.55rem;">
+                AI Chatbots & Lead Capture
+              </h3>
+              <p style="font-size:.84rem;color:rgba(255,255,255,.52);line-height:1.78;">
+                Smart assistants trained exclusively on your business data that handle inbound queries, qualify leads,
+                and book meetings for you 24/7, without a human in the loop.
+              </p>
+            </div>
+            <!-- CSS chat art -->
+            <div class="css-chat">
+              <div class="cbubble cb-u">When does my subscription end?</div>
+              <div class="cbubble cb-b">Your plan renews on April 30th. Want me to send a full usage summary?</div>
+              <div class="cbubble cb-u">Yes please.</div>
+              <div class="cb-typing"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+
+          <!-- Card 2: Workflow — col 5 -->
+          <div class="bcell bc5" id="svc-workflow">
+            <div class="icon-pill">
+              <i data-lucide="git-branch"
+                style="width:16px;height:16px;color:rgba(110,231,183,.65);stroke-width:1.5;"></i>
+            </div>
+            <div>
+              <h3
+                style="font-size:.975rem;font-weight:700;color:rgba(255,255,255,.88);letter-spacing:-.012em;margin-bottom:.55rem;">
+                Workflow Automation
+              </h3>
+              <p style="font-size:.84rem;color:rgba(255,255,255,.52);line-height:1.78;max-width:240px;">
+                Connect your favorite apps so data flows seamlessly in the background. Stop copy-pasting information
+                between different platforms and let the software do the heavy lifting.
+              </p>
+            </div>
+            <!-- CSS flow art -->
+            <div class="css-flow">
+              <div class="fnode">CRM</div>
+              <div class="fline"></div>
+              <div class="fnode">Notion</div>
+              <div class="fline" style="background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(52,211,153,.22));">
+              </div>
+              <div class="fnode em">Slack</div>
+            </div>
+          </div>
+
+          <!-- Card 3: CRM — col 5 -->
+          <div class="bcell bc5" id="svc-crm">
+            <div class="icon-pill">
+              <i data-lucide="database"
+                style="width:16px;height:16px;color:rgba(196,181,253,.62);stroke-width:1.5;"></i>
+            </div>
+            <div>
+              <h3
+                style="font-size:.975rem;font-weight:700;color:rgba(255,255,255,.88);letter-spacing:-.012em;margin-bottom:.55rem;">
+                CRM & Data Ops
+              </h3>
+              <p style="font-size:.84rem;color:rgba(255,255,255,.52);line-height:1.78;max-width:240px;">
+                Keep your databases organized automatically. We set up systems that ensure no lead is forgotten and your
+                sales pipeline is always perfectly accurate.
+              </p>
+            </div>
+            <!-- CSS table art -->
+            <div class="css-table">
+              <div class="trow"
+                style="padding-bottom:4px;margin-bottom:2px;border-bottom:1px solid rgba(255,255,255,.07);">
+                <div class="tbar" style="width:38px;background:rgba(255,255,255,.13);"></div>
+                <div class="tbar" style="width:54px;background:rgba(255,255,255,.09);"></div>
+                <div class="tbar" style="width:26px;background:rgba(255,255,255,.09);"></div>
+              </div>
+              <div class="trow">
+                <div class="tbar" style="width:46px;"></div>
+                <div class="tbar" style="width:30px;"></div>
+                <div class="tbar" style="width:42px;"></div>
+              </div>
+              <div class="trow">
+                <div class="tbar" style="width:34px;"></div>
+                <div class="tbar" style="width:58px;"></div>
+                <div class="tbar" style="width:22px;"></div>
+              </div>
+              <div class="trow" style="border-bottom:none;">
+                <div class="tbar" style="width:50px;"></div>
+                <div class="tbar" style="width:36px;"></div>
+                <div class="tbar" style="width:44px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: AI Agents — col 7 -->
+          <div class="bcell bc7" id="svc-agents">
+            <div class="icon-pill">
+              <i data-lucide="cpu" style="width:16px;height:16px;color:rgba(196,181,253,.72);stroke-width:1.5;"></i>
+            </div>
+            <div style="max-width:310px;">
+              <h3
+                style="font-size:.975rem;font-weight:700;color:rgba(255,255,255,.88);letter-spacing:-.012em;margin-bottom:.55rem;">
+                Custom AI Agents
+              </h3>
+              <p style="font-size:.84rem;color:rgba(255,255,255,.52);line-height:1.78;">
+                Turn your internal documents and processes into custom AI workers. These agents help your team find
+                answers instantly and execute daily tasks flawlessly.
+              </p>
+            </div>
+            <!-- CSS neural network art (inline SVG) -->
+            <svg style="position:absolute;bottom:0;right:0;width:210px;height:140px;pointer-events:none;opacity:.45;"
+              viewBox="0 0 210 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Lines -->
+              <line x1="55" y1="70" x2="105" y2="35" stroke="rgba(109,40,217,.28)" stroke-width=".7" />
+              <line x1="55" y1="70" x2="105" y2="70" stroke="rgba(109,40,217,.28)" stroke-width=".7" />
+              <line x1="55" y1="70" x2="105" y2="105" stroke="rgba(109,40,217,.28)" stroke-width=".7" />
+              <line x1="105" y1="35" x2="160" y2="20" stroke="rgba(109,40,217,.18)" stroke-width=".7" />
+              <line x1="105" y1="35" x2="160" y2="55" stroke="rgba(109,40,217,.18)" stroke-width=".7" />
+              <line x1="105" y1="70" x2="160" y2="70" stroke="rgba(109,40,217,.18)" stroke-width=".7" />
+              <line x1="105" y1="105" x2="160" y2="90" stroke="rgba(109,40,217,.18)" stroke-width=".7" />
+              <line x1="105" y1="105" x2="160" y2="120" stroke="rgba(109,40,217,.18)" stroke-width=".7" />
+              <!-- Input node -->
+              <circle cx="55" cy="70" r="5.5" fill="rgba(109,40,217,.55)" />
+              <circle cx="55" cy="70" r="11" fill="rgba(109,40,217,.08)" />
+              <!-- Hidden nodes -->
+              <circle cx="105" cy="35" r="3.5" fill="rgba(196,181,253,.38)" />
+              <circle cx="105" cy="70" r="3.5" fill="rgba(196,181,253,.38)" />
+              <circle cx="105" cy="105" r="3.5" fill="rgba(196,181,253,.38)" />
+              <!-- Output nodes -->
+              <circle cx="160" cy="20" r="2.5" fill="rgba(196,181,253,.2)" />
+              <circle cx="160" cy="55" r="2.5" fill="rgba(196,181,253,.2)" />
+              <circle cx="160" cy="70" r="2.5" fill="rgba(196,181,253,.2)" />
+              <circle cx="160" cy="90" r="2.5" fill="rgba(196,181,253,.2)" />
+              <circle cx="160" cy="120" r="2.5" fill="rgba(196,181,253,.2)" />
+            </svg>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+     WHY DRIFT
+══════════════════════════════════════ -->
+    <section id="why" class="sep" style="padding:5.5rem 2rem 8rem;">
+      <div style="max-width:1120px;margin:0 auto;">
+
+        <div class="reveal" style="margin-bottom:3.75rem;">
+          <span class="overline">Why us</span>
+          <h2
+            style="font-size:clamp(1.9rem,3.6vw,2.6rem);font-weight:800;letter-spacing:-.026em;color:#ede9ff;line-height:1.1;">
+            Outcomes, not just deliverables.
+          </h2>
+        </div>
+
+        <div
+          style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.05);border-radius:16px;overflow:hidden;">
+
+          <div class="bcell reveal" id="why-1">
+            <div class="icon-pill">
+              <i data-lucide="code-2" style="width:16px;height:16px;color:rgba(110,231,183,.65);stroke-width:1.5;"></i>
+            </div>
+            <h3
+              style="font-size:.95rem;font-weight:700;color:rgba(255,255,255,.82);margin-bottom:.5rem;letter-spacing:-.01em;">
+              No-code & custom code</h3>
+            <p style="font-size:.84rem;color:rgba(255,255,255,.52);line-height:1.78;">
+              Most agencies only know how to use basic templates. We write custom code from scratch when standard
+              software reaches its limits.
+            </p>
+          </div>
+
+          <div class="bcell reveal" id="why-2" style="transition-delay:.08s;">
+            <div class="icon-pill">
+              <i data-lucide="timer" style="width:16px;height:16px;color:rgba(255,255,255,.6);stroke-width:1.5;"></i>
+            </div>
+            <h3
+              style="font-size:.95rem;font-weight:700;color:rgba(255,255,255,.88);margin-bottom:.5rem;letter-spacing:-.01em;">
+              Fast, predictable delivery</h3>
+            <p style="font-size:.84rem;color:rgba(255,255,255,.52);line-height:1.78;">
+              Most projects are completed in hours, not days. We give you a strict timeline before any work begins so
+              you know exactly what to expect.
+            </p>
+          </div>
+
+          <div class="bcell reveal" id="why-3" style="transition-delay:.16s;">
+            <div class="icon-pill">
+              <i data-lucide="shield-check"
+                style="width:16px;height:16px;color:rgba(255,255,255,.6);stroke-width:1.5;"></i>
+            </div>
+            <h3
+              style="font-size:.95rem;font-weight:700;color:rgba(255,255,255,.88);margin-bottom:.5rem;letter-spacing:-.01em;">
+              Works, or we fix it</h3>
+            <p style="font-size:.84rem;color:rgba(255,255,255,.52);line-height:1.78;">
+              Every automation is built to work flawlessly. If a system fails to perform as promised, we will fix it
+              immediately at no extra cost.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+     PROCESS
+══════════════════════════════════════ -->
+    <section id="process" class="sep" style="padding:5.5rem 2rem 8rem;">
+      <div style="max-width:720px;margin:0 auto;">
+
+        <div class="reveal" style="margin-bottom:3.75rem;">
+          <span class="overline">How it works</span>
+          <h2
+            style="font-size:clamp(1.9rem,3.6vw,2.6rem);font-weight:800;letter-spacing:-.026em;color:#ede9ff;line-height:1.1;">
+            Simple. Fast. <span class="g-text">Effective.</span>
+          </h2>
+        </div>
+
+        <div
+          style="display:flex;flex-direction:column;gap:1px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.05);border-radius:16px;overflow:hidden;">
+
+          <div class="bcell reveal" id="step-1">
+            <div style="display:flex;gap:1.1rem;align-items:flex-start;">
+              <div class="step-circle">01</div>
+              <div>
+                <h3 style="font-size:.93rem;font-weight:700;color:rgba(255,255,255,.82);margin-bottom:.4rem;">
+                  Consultation</h3>
+                <p style="font-size:.88rem;color:rgba(255,255,255,.52);line-height:1.82;">A brief call to map out your
+                  current workflows. We identify your biggest bottlenecks and tell you exactly what is worth automating.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bcell reveal" id="step-2" style="transition-delay:.07s;">
+            <div style="display:flex;gap:1.1rem;align-items:flex-start;">
+              <div class="step-circle">02</div>
+              <div>
+                <h3 style="font-size:.93rem;font-weight:700;color:rgba(255,255,255,.82);margin-bottom:.4rem;">Design &
+                  Build</h3>
+                <p style="font-size:.88rem;color:rgba(255,255,255,.52);line-height:1.82;">Our team builds the entire
+                  system end-to-end. We integrate your tools and account for every possible edge case to ensure
+                  long-term stability.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bcell reveal" id="step-3" style="transition-delay:.14s;">
+            <div style="display:flex;gap:1.1rem;align-items:flex-start;">
+              <div class="step-circle">03</div>
+              <div>
+                <h3 style="font-size:.93rem;font-weight:700;color:rgba(255,255,255,.82);margin-bottom:.4rem;">Test &
+                  Optimise</h3>
+                <p style="font-size:.88rem;color:rgba(255,255,255,.52);line-height:1.82;">We stress-test every possible
+                  scenario. Nothing is handed over to you until it performs perfectly in a live environment.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bcell reveal" id="step-4" style="transition-delay:.21s;">
+            <div style="display:flex;gap:1.1rem;align-items:flex-start;">
+              <div class="step-circle">04</div>
+              <div>
+                <h3 style="font-size:.93rem;font-weight:700;color:rgba(255,255,255,.82);margin-bottom:.4rem;">Maintain &
+                  Monitor</h3>
+                <p style="font-size:.88rem;color:rgba(255,255,255,.52);line-height:1.82;">Software updates happen. APIs
+                  change. We monitor your automations after launch to keep everything running smoothly so you never have
+                  to worry.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+     FAQ
+══════════════════════════════════════ -->
+    <section id="faq" class="sep" style="padding:5.5rem 2rem 8rem;">
+      <div style="max-width:680px;margin:0 auto;">
+
+        <div class="reveal" style="margin-bottom:3.25rem;">
+          <span class="overline">FAQ</span>
+          <h2
+            style="font-size:clamp(1.9rem,3.6vw,2.6rem);font-weight:800;letter-spacing:-.026em;color:#ede9ff;line-height:1.1;">
+            Common questions.<br /><span class="g-text">Clear answers.</span>
+          </h2>
+        </div>
+
+        <div class="reveal" id="faq-list">
+
+          <div class="faq-item">
+            <button class="faq-btn" aria-expanded="false" id="fq1">
+              What kind of tasks can you automate?
+              <i data-lucide="plus" class="faq-icon" style="width:15px;height:15px;stroke-width:2;"></i>
+            </button>
+            <div class="faq-body" id="fq1-b">
+              <p>If a task is repetitive and follows clear rules, it is a great candidate. This includes data entry,
+                lead follow-ups, and invoice generation. Tell us your bottleneck, and we will let you know if automation
+                makes sense.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-btn" aria-expanded="false" id="fq2">
+              How quickly do you deliver?
+              <i data-lucide="plus" class="faq-icon" style="width:15px;height:15px;stroke-width:2;"></i>
+            </button>
+            <div class="faq-body" id="fq2-b">
+              <p>Straightforward automations typically ship within 48 hours. More complex, multi-system builds take 2-3
+                days. We give you the concrete timeline before any work begins, not after.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-btn" aria-expanded="false" id="fq3">
+              Can you work with the tools we already use?
+              <i data-lucide="plus" class="faq-icon" style="width:15px;height:15px;stroke-width:2;"></i>
+            </button>
+            <div class="faq-body" id="fq3-b">
+              <p>Yes. Yes. If your software has an API or webhook, we can connect it. We regularly work with HubSpot,
+                Notion, Slack, Airtable, Stripe, Google Workspace and most others. When off-the-shelf connectors don't
+                exist, we build the integration from scratch.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-btn" aria-expanded="false" id="fq4">
+              What if the result doesn't meet expectations?
+              <i data-lucide="plus" class="faq-icon" style="width:15px;height:15px;stroke-width:2;"></i>
+            </button>
+            <div class="faq-body" id="fq4-b">
+              <p>We stand behind what we ship. If an automation does not do what we agreed upon, we fix it at no extra
+                cost. We'd rather invest time in getting it right than hand you something that creates new problems.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-btn" aria-expanded="false" id="fq5">
+              Do I need a technical background to work with you?
+              <i data-lucide="plus" class="faq-icon" style="width:15px;height:15px;stroke-width:2;"></i>
+            </button>
+            <div class="faq-body" id="fq5-b">
+              <p>Not at all. You just explain the business problem to us in plain English. We handle 100% of the
+                technical setup and only involve you for final approvals. The heavy lifting is entirely ours.</p>
+            </div>
+          </div>
+
+          <div class="faq-item" style="border-bottom:none;">
+            <button class="faq-btn" aria-expanded="false" id="fq6">
+              What does it cost?
+              <i data-lucide="plus" class="faq-icon" style="width:15px;height:15px;stroke-width:2;"></i>
+            </button>
+            <div class="faq-body" id="fq6-b">
+              <p>Pricing depends entirely on the project scope. We offer one-time build fees as well as optional monthly
+                maintenance plans. We will provide a crystal-clear quote with zero hidden costs.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+     BOOKING / CTA
+══════════════════════════════════════ -->
+    <section id="contact" class="sep" style="padding:5.5rem 2rem 8rem;">
+      <div style="max-width:1100px;margin:0 auto;">
+
+        <div class="reveal" style="text-align:center;margin-bottom:3.5rem;">
+          <span class="overline">Book a call</span>
+          <h2
+            style="font-size:clamp(1.8rem,3.5vw,2.5rem);font-weight:800;letter-spacing:-.028em;color:#f5f5f5;margin-bottom:1rem;line-height:1.08;">
+            Ready to reclaim your time?
+          </h2>
+          <p style="color:rgba(255,255,255,.5);font-size:.95rem;line-height:1.82;max-width:440px;margin:0 auto;">
+            Tell us what's slowing you down. Pick a time below and we'll map out a custom automation plan &mdash; no
+            commitment required.
+          </p>
+        </div>
+
+        <!-- Calendly inline embed — wide enough to trigger side-by-side layout -->
+        <div class="reveal" style="border:1px solid rgba(255,255,255,.08);border-radius:20px;overflow:hidden;background:rgba(255,255,255,.02);">
+          <div
+            class="calendly-inline-widget"
+            data-url="https://calendly.com/saksham-driftautomations/30min?hide_gdpr_banner=1&background_color=111111&text_color=ffffff&primary_color=ffffff"
+            style="min-width:900px;height:660px;">
+          </div>
+          <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
+        </div>
+
+        <p style="text-align:center;margin-top:1.6rem;font-size:.88rem;color:rgba(255,255,255,.62);">
+          Prefer email? Reach us at&nbsp;<a href="mailto:hello@driftautomations.tech"
+            style="color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35);font-weight:600;">hello@driftautomations.tech</a>
+        </p>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+    <footer id="footer" style="border-top:1px solid rgba(255,255,255,.07);padding:4rem 2rem 2.5rem;">
+      <div style="max-width:1120px;margin:0 auto;">
+
+        <div style="display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:3rem;margin-bottom:3.5rem;flex-wrap:wrap;">
+
+          <!-- Brand column -->
+          <div>
+            <a href="#" style="display:flex;align-items:center;gap:9px;text-decoration:none;margin-bottom:1.25rem;">
+              <img src="logo.png" alt="Drift Automations logo" style="height:48px;width:auto;object-fit:contain;" />
+            </a>
+            <p
+              style="font-size:.84rem;color:rgba(255,255,255,.6);line-height:1.8;max-width:230px;margin-bottom:1.5rem;">
+              Custom AI agents and backend automations for businesses that have outgrown manual processes.
+            </p>
+            <!-- Social: LinkedIn only -->
+            <div style="display:flex;gap:.75rem;">
+              <a href="https://linkedin.com/company/driftautomations" target="_blank" rel="noopener"
+                style="width:36px;height:36px;border:1px solid rgba(255,255,255,.18);border-radius:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.65);text-decoration:none;transition:all .2s ease;"
+                onmouseover="this.style.borderColor='rgba(255,255,255,.5)';this.style.color='#fff';this.style.background='rgba(255,255,255,.08)'"
+                onmouseout="this.style.borderColor='rgba(255,255,255,.18)';this.style.color='rgba(255,255,255,.65)';this.style.background='transparent'"
+                aria-label="LinkedIn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Services -->
+          <div>
+            <p
+              style="font-size:.73rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:1.15rem;">
+              Services</p>
+            <div style="display:flex;flex-direction:column;gap:.7rem;">
+              <a href="#services"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);text-decoration:none;transition:color .2s ease;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">AI
+                Chatbots</a>
+              <a href="#services"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);text-decoration:none;transition:color .2s ease;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">Workflow
+                Automation</a>
+              <a href="#services"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);text-decoration:none;transition:color .2s ease;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">CRM &amp;
+                Data Ops</a>
+              <a href="#services"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);text-decoration:none;transition:color .2s ease;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">Custom AI
+                Agents</a>
+            </div>
+          </div>
+
+          <!-- Company -->
+          <div>
+            <p
+              style="font-size:.73rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:1.15rem;">
+              Company</p>
+            <div style="display:flex;flex-direction:column;gap:.7rem;">
+              <button onclick="openModal('about-modal')"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);background:none;border:none;cursor:pointer;text-align:left;padding:0;transition:color .2s ease;font-family:inherit;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">About
+                Us</button>
+              <a href="#process"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);text-decoration:none;transition:color .2s ease;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">How It
+                Works</a>
+              <a href="#faq"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);text-decoration:none;transition:color .2s ease;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">FAQ</a>
+              <a href="#contact"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);text-decoration:none;transition:color .2s ease;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">Book a
+                Call</a>
+            </div>
+          </div>
+
+          <!-- Legal -->
+          <div>
+            <p
+              style="font-size:.73rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:1.15rem;">
+              Legal</p>
+            <div style="display:flex;flex-direction:column;gap:.7rem;">
+              <button onclick="openModal('privacy-modal')"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);background:none;border:none;cursor:pointer;text-align:left;padding:0;transition:color .2s ease;font-family:inherit;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">Privacy
+                Policy</button>
+              <button onclick="openModal('terms-modal')"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);background:none;border:none;cursor:pointer;text-align:left;padding:0;transition:color .2s ease;font-family:inherit;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">Terms of
+                Service</button>
+              <button onclick="openModal('refund-modal')"
+                style="font-size:.86rem;color:rgba(255,255,255,.78);background:none;border:none;cursor:pointer;text-align:left;padding:0;transition:color .2s ease;font-family:inherit;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">Refund
+                Policy</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom bar -->
+        <div
+          style="border-top:1px solid rgba(255,255,255,.09);padding-top:1.75rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;">
+          <p style="font-size:.82rem;color:rgba(255,255,255,.6);">&copy; 2026 Drift Automations. All rights reserved.
+          </p>
+          <a href="mailto:hello@driftautomations.tech"
+            style="display:flex;align-items:center;gap:.5rem;font-size:.86rem;font-weight:600;color:rgba(255,255,255,.78);text-decoration:none;transition:color .2s ease;"
+            onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.78)'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+            hello@driftautomations.tech
+          </a>
+        </div>
+
+      </div>
+    </footer>
+
+    <!-- ══════════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+
+    <!-- About Us modal -->
+    <div id="about-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="about-title">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('about-modal')" aria-label="Close">&times;</button>
+        <h2 class="modal-title" id="about-title">About Drift Automations</h2>
+        <div class="modal-body">
+          <p>We really want to make sure that your business operations run as smoothly and quickly as possible.</p>
+          <p>We are experts at building the best automation systems in the world so that your business efforts can go to
+            the next level.</p>
+          <h3>Our Story</h3>
+          <p>We started out with the goal of making it easier for businesses to handle their repetitive workflows, and
+            now we're a committed group of experts who live and breathe business automation. We know how hard it is for
+            businesses to set up and manage various operational systems, and we're here to make it easy for you.</p>
+          <p>Our platform makes it easy for businesses of all sizes to set up and handle complex processes with just a
+            few clicks, no matter how big or small they are.</p>
+          <p><strong>Automations and Getting Things Done:</strong> Our advanced system handles everything.</p>
+          <p><strong>Easy to trust and quick:</strong> We're proud of how fast and reliable we are. We can do in minutes
+            what would take hours by hand, without making any mistakes.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Policy modal -->
+    <div id="privacy-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('privacy-modal')" aria-label="Close">&times;</button>
+        <h2 class="modal-title" id="privacy-title">Privacy Policy</h2>
+        <div class="modal-body">
+          <p>Welcome to Drift Automations. We are committed to protecting your privacy. This Privacy Policy explains how
+            we collect, use, disclose, and safeguard your information when you visit our website.</p>
+          <p>We collect personal data such as name, email, phone number, and address you provide voluntarily.</p>
+          <p>We use the collected information to process transactions, improve our website and services, and communicate
+            with you.</p>
+          <p>We may share your information with service providers for payment processing and customer support, and as
+            required by law to comply with regulations.</p>
+          <p>We use reasonable measures to protect your information but cannot guarantee absolute security.</p>
+          <p>We do not knowingly collect data from children under 13. Contact us if you believe we have collected such
+            data.</p>
+          <p>We may update this policy periodically. Changes will be posted on this page.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terms of Service modal -->
+    <div id="terms-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="terms-title">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('terms-modal')" aria-label="Close">&times;</button>
+        <h2 class="modal-title" id="terms-title">Terms of Service</h2>
+        <div class="modal-body">
+          <h3>1. Services</h3>
+          <p>We provide AI automation services. By purchasing our services, you agree to provide accurate information
+            and comply with all applicable laws.</p>
+          <h3>2. Payment</h3>
+          <p>All payments are due in full at the time of purchase. We do not offer refunds once services have been
+            rendered.</p>
+          <h3>3. Use of Services</h3>
+          <p>You agree to use our services for lawful purposes only and not to engage in any activity that could harm
+            our operations or reputation.</p>
+          <h3>4. Limitation of Liability</h3>
+          <p>Drift Automations is not liable for any damages arising from the use or inability to use our services.</p>
+          <h3>5. Changes to Terms</h3>
+          <p>We may update these terms at any time. Continued use of our services constitutes acceptance of the revised
+            terms.</p>
+          <p style="margin-top:1.5rem;"><strong>Drift Automations</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Refund Policy modal -->
+    <div id="refund-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="refund-title">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('refund-modal')" aria-label="Close">&times;</button>
+        <h2 class="modal-title" id="refund-title">Refund Policy</h2>
+        <div class="modal-body">
+          <p>At Drift Automations, we strive to provide high-quality automation services tailored to your needs. Due to
+            the nature of our services, we do not offer refunds once the service has been rendered.</p>
+          <p>If you encounter any issues or if the delivered automation does not meet your expectations, please contact
+            us at <a href="mailto:saksham@driftautomations.tech"
+              style="color:rgba(255,255,255,.8);text-decoration:underline;">saksham@driftautomations.tech</a>. We are
+            committed to resolving any problems to ensure your satisfaction.</p>
+          <p style="margin-top:1.5rem;"><strong>Drift Automations</strong></p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /site -->
+
+  <!-- ══════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════ -->
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Mobile menu toggle
+    document.getElementById('mob-toggle').addEventListener('click', function () {
+      const m = document.getElementById('mob-menu');
+      m.style.display = m.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close mobile menu on link click
+    document.querySelectorAll('#mob-menu a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        document.getElementById('mob-menu').style.display = 'none';
+      });
+    });
+
+    // Scroll reveal
+    const revealObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) e.target.classList.add('in');
+      });
+    }, { threshold: 0.09, rootMargin: '0px 0px -24px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(function (el) {
+      revealObs.observe(el);
+    });
+
+    // FAQ accordion
+    document.querySelectorAll('.faq-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var isOpen = btn.getAttribute('aria-expanded') === 'true';
+
+        // Close all
+        document.querySelectorAll('.faq-btn').forEach(function (b) {
+          b.setAttribute('aria-expanded', 'false');
+          b.nextElementSibling.classList.remove('open');
+        });
+
+        // Open clicked if it was closed
+        if (!isOpen) {
+          btn.setAttribute('aria-expanded', 'true');
+          btn.nextElementSibling.classList.add('open');
+        }
+      });
+    });
+
+    // Modal system
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    // Close on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closeModal(overlay.id);
+      });
+    });
+    // Close on Escape
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(function (m) {
+          closeModal(m.id);
+        });
+      }
+    });
+  </script>
+
+</body>
+
+</html>
